@@ -18,14 +18,27 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout" stretch="10,7">
       <item>
-       <widget class="QGraphicsView" name="graphicsView"/>
+       <widget class="QGraphicsView" name="graphicsView">
+        <property name="backgroundBrush">
+         <brush brushstyle="NoBrush">
+          <color alpha="255">
+           <red>35</red>
+           <green>35</green>
+           <blue>35</blue>
+          </color>
+         </brush>
+        </property>
+        <property name="renderHints">
+         <set>QPainter::RenderHint::Antialiasing</set>
+        </property>
+       </widget>
       </item>
       <item>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
          <widget class="QLabel" name="label">
           <property name="text">
-           <string>Матрица смежности (пусто = )</string>
+           <string>Матрица смежности</string>
           </property>
          </widget>
         </item>
@@ -37,6 +50,23 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+          <property name="rowCount">
+           <number>4</number>
+          </property>
+          <property name="columnCount">
+           <number>4</number>
+          </property>
+          <row/>
+          <row/>
+          <row/>
+          <row/>
+          <column/>
+          <column/>
+          <column/>
+          <column/>
          </widget>
         </item>
         <item>
