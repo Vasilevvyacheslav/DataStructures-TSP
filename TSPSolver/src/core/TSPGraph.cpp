@@ -11,7 +11,15 @@ TSPGraph::TSPGraph(int size) : n(size) {
 // Установка размера матрицы
 void TSPGraph::setSize(int size) {
     n = size;
-    matrix.resize(n, vector<double>(n, INF));
+    // Меняем количество строк
+    matrix.resize(n);
+
+    // Меняем длину каждой строки (количество столбцов)
+    for (int i = 0; i < n; i++) {
+        matrix[i].resize(n, INF);
+    }
+
+    //Диагональ всегда 0
     for (int i = 0; i < n; i++) {
         matrix[i][i] = 0;
     }
