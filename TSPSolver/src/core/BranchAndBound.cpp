@@ -128,25 +128,27 @@ void BranchAndBound::solveRecursive(vector<vector<double>> matrix, vector<int> p
                                      double currentCost, double upperBound, TSPResult& result) {
     int n = matrix.size();
 
-    // Создаём шаг для визуализации
     BnBStep step;
     step.stepNumber = stepCounter++;
     step.currentMatrix = matrix;
     step.lowerBound = currentCost;
     step.currentPath = path;
 
-    // Если достигли конца
+    // Если все вершины посещены
     if (path.size() == n) {
-        // Проверяем, можно ли вернуться в начало
-        if (matrix[path.back()][path[0]] < INF) {
-            double finalCost = currentCost + matrix[path.back()][path[0]];
-            if (finalCost < result.bestCost || result.bestCost == 0) {
+        int lastVertex = path.back();
+        int firstVertex = path[0];
+
+        if (matrix[lastVertex][firstVertex] < INF) {
+            double finalCost = currentCost + matrix[lastVertex][firstVertex];
+
+            if (result.bestCost == 0 || finalCost < result.bestCost) {
                 result.bestCost = finalCost;
                 result.bestPath = path;
-                result.bestPath.push_back(path[0]);  // Замыкаем цикл
+                result.bestPath.push_back(firstVertex);
                 result.solved = true;
 
-                step.description = "Найден маршрут стоимостью: " + to_string(finalCost);
+                step.description = "Найден маршрут: " + to_string(finalCost);
                 steps.push_back(step);
             }
         }
@@ -158,10 +160,9 @@ void BranchAndBound::solveRecursive(vector<vector<double>> matrix, vector<int> p
     reduceMatrix(matrix, reductionCost);
     currentCost += reductionCost;
 
-    step.description = "Приведение матрицы. Нижняя оценка: " + to_string(currentCost);
+    step.description = "Приведение. Оценка: " + to_string(currentCost);
     steps.push_back(step);
 
-    // Если нижняя оценка уже больше верхней границы - отсекаем
     if (upperBound > 0 && currentCost >= upperBound) {
         return;
     }
@@ -170,29 +171,35 @@ void BranchAndBound::solveRecursive(vector<vector<double>> matrix, vector<int> p
     int row, col;
     findMaxZero(matrix, row, col);
 
-    if (row == -1) return;  // Нет нулей
+    if (row == -1) return;
 
-    // Ветвление 1: включаем ребро (row, col)
-    vector<int> newPath = path;
-    newPath.push_back(row);
-
-    vector<vector<double>> newMatrix = matrix;
-    newMatrix[row][col] = INF;  // Запрещаем обратное ребро
-
-    // Удаляем строку и столбец (помечаем как INF)
-    for (int i = 0; i < n; i++) {
-        newMatrix[row][i] = INF;
-        newMatrix[i][col] = INF;
+    // Проверяем, не посещали ли уже вершины row и col
+    bool rowVisited = false, colVisited = false;
+    for (int v : path) {
+        if (v == row) rowVisited = true;
+        if (v == col) colVisited = true;
     }
 
-    // Рекурсивный вызов
-    solveRecursive(newMatrix, newPath, currentCost, result.bestCost, result);
+    // Ветвление 1: включаем ребро (row -> col)
+    if (!colVisited) {
+        vector<int> newPath = path;
+        newPath.push_back(col);
+        vector<vector<double>> newMatrix = matrix;
+        newMatrix[col][row] = INF;  // Запрещаем обратное ребро
+
+        // Удаляем строку row и столбец col
+        for (int i = 0; i < n; i++) {
+            newMatrix[row][i] = INF;
+            newMatrix[i][col] = INF;
+        }
+
+        solveRecursive(newMatrix, newPath, currentCost, result.bestCost, result);
+    }
 
     // Ветвление 2: исключаем ребро (row, col)
     matrix[row][col] = INF;
     solveRecursive(matrix, path, currentCost, upperBound, result);
 }
-
 // Основной метод решения
 TSPResult BranchAndBound::solve() {
     TSPResult result;
@@ -206,6 +213,7 @@ TSPResult BranchAndBound::solve() {
 
     vector<vector<double>> matrix = graph->getMatrix();
     vector<int> path;
+    path.push_back(0);  // Начинаем с вершины 0
 
     solveRecursive(matrix, path, 0, 0, result);
 
